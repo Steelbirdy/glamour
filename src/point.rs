@@ -12,8 +12,7 @@
 use crate::{
     bindings::prelude::*,
     scalar::{FloatScalar, SignedScalar},
-    AsRaw, FromRaw, Scalar, ToRaw, Unit, Vector2, Vector3, Vector4,
-    Axis2, Axis3, Axis4,
+    AsRaw, Axis2, Axis3, Axis4, FromRaw, Scalar, ToRaw, Unit, Vector2, Vector3, Vector4,
 };
 use core::ops::Mul;
 
@@ -553,6 +552,10 @@ impl<T: Unit> From<Point4<T>> for Vector4<T> {
 crate::derive_index_traits!(Point2, Axis2 { X => x, Y => y });
 crate::derive_index_traits!(Point3, Axis3 { X => x, Y => y, Z => z });
 crate::derive_index_traits!(Point4, Axis4 { X => x, Y => y, Z => z, W => w });
+
+crate::rand_interface!(Point2 [2] { x, y });
+crate::rand_interface!(Point3 [3] { x, y, z });
+crate::rand_interface!(Point4 [4] { x, y, z, w });
 
 #[cfg(test)]
 mod tests {

@@ -15,12 +15,12 @@ fn const_get_set() {
 fn swizzle() {
     let v: Vector4<f32> = [1.0, 2.0, 3.0, 4.0].into();
 
-    let v4 = v.swizzle::<3, 1, 0, 2>();
+    let v4 = v.swizzle(Axis4::W, Axis4::Y, Axis4::X, Axis4::Z);
     assert_eq!(v4, [4.0, 2.0, 1.0, 3.0]);
 
-    let v2 = v.swizzle2::<0, 1>();
+    let v2 = v.swizzle2(Axis4::X, Axis4::Y);
     assert_eq!(v2, [1.0, 2.0]);
 
-    let v3 = v.swizzle3::<0, 1, 2>();
+    let v3 = v.swizzle3(Axis4::X, Axis4::Y, Axis4::Z);
     assert_eq!(v3, [1.0, 2.0, 3.0]);
 }

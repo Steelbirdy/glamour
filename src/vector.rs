@@ -13,8 +13,8 @@ use core::ops::Mul;
 
 use crate::scalar::SignedScalar;
 use crate::{
-    bindings::prelude::*, scalar::FloatScalar, Point2, Point3, Point4, Scalar, Size2, Size3, Unit,
-    Axis2, Axis3, Axis4,
+    bindings::prelude::*, scalar::FloatScalar, Axis2, Axis3, Axis4, Point2, Point3, Point4, Scalar,
+    Size2, Size3, Unit,
 };
 use crate::{Angle, AsRaw, FromRaw, ToRaw};
 
@@ -39,13 +39,7 @@ pub trait Swizzle<T: Unit> {
     #[doc = "Select four components from this vector and return a 4D vector made from"]
     #[doc = "those components."]
     #[must_use]
-    fn swizzle4(
-        &self,
-        x: Self::Axis,
-        y: Self::Axis,
-        z: Self::Axis,
-        w: Self::Axis,
-    ) -> Vector4<T>;
+    fn swizzle4(&self, x: Self::Axis, y: Self::Axis, z: Self::Axis, w: Self::Axis) -> Vector4<T>;
 }
 
 /// 2D vector.
@@ -960,6 +954,10 @@ crate::derive_index_traits!(Vector2, Axis2 { X => x, Y => y });
 crate::derive_index_traits!(Vector3, Axis3 { X => x, Y => y, Z => z });
 crate::derive_index_traits!(Vector4, Axis4 { X => x, Y => y, Z => z, W => w });
 
+crate::rand_interface!(Vector2 [2] { x, y });
+crate::rand_interface!(Vector3 [3] { x, y, z });
+crate::rand_interface!(Vector4 [4] { x, y, z, w });
+
 #[cfg(test)]
 mod tests {
     use approx::assert_abs_diff_eq;
@@ -1211,7 +1209,10 @@ mod tests {
             Vec3::new(1.0, 2.0, 3.0).swizzle(Axis3::Z, Axis3::Y, Axis3::X),
             (3.0, 2.0, 1.0)
         );
-        assert_eq!(Vec2::X.swizzle3(Axis2::Y, Axis2::X, Axis2::Y), Vec3::new(0.0, 1.0, 0.0));
+        assert_eq!(
+            Vec2::X.swizzle3(Axis2::Y, Axis2::X, Axis2::Y),
+            Vec3::new(0.0, 1.0, 0.0)
+        );
         assert_eq!(
             Vec4::new(1.0, 2.0, 3.0, 4.0).swizzle3(Axis4::W, Axis4::Z, Axis4::Y),
             Vec3::new(4.0, 3.0, 2.0)

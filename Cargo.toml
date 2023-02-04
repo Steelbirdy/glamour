@@ -23,6 +23,14 @@ bytemuck = { version = "^1.8", default-features = false }
 num-traits = { version = "^0.2", default-features = false }
 approx = "^0.5"
 
+[dependencies.rand]
+version = "^0.8"
+optional = true
+
+[dependencies.rand_distr]
+version = "^0.4"
+optional = true
+
 [dependencies.serde]
 version = "^1.0"
 features = ["derive"]
@@ -40,10 +48,11 @@ optional = true
 
 [features]
 default = ["std"]
-std = ["glam/std", "num-traits/std"]
+std = ["glam/std", "num-traits/std", "rand?/std", "rand_distr?/std"]
 scalar-math = ["glam/scalar-math"]
 serde = ["dep:serde", "glam/serde"]
 core-simd = ["glam/core-simd"]
+rand = ["dep:rand", "dep:rand_distr"]
 
 # Enable conversions to `mint` types
 mint = ["dep:mint", "glam/mint"]

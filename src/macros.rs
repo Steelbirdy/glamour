@@ -764,6 +764,127 @@ macro_rules! derive_index_traits {
     };
 }
 
+macro_rules! rand_interface {
+    ($ty:ident [$len:tt] { $( $field:ident ),* }) => {
+        crate::rand_interface!(@all $ty [$len] { $( $field ),* });
+        crate::rand_interface!(@spec $ty [$len] { $( $field ),* });
+    };
+    (@all $ty:ident [$len:tt] { $( $field:ident ),* }) => {
+        #[cfg(feature = "rand")]
+        impl<T: Unit> rand::distributions::Distribution<$ty<T>> for rand::distributions::Standard
+        where
+            Self: rand::distributions::Distribution<[T::Scalar; $len]>,
+        {
+            #[inline]
+            fn sample<R: ?Sized + rand::Rng>(&self, rng: &mut R) -> $ty<T> {
+                self.sample(rng).into()
+            }
+        }
+    };
+    (@spec $ty:ident [2] { $( $field:ident ),* }) => {
+        #[cfg(feature = "rand")]
+        impl<T: Unit> rand::distributions::Distribution<$ty<T>> for rand_distr::UnitCircle
+        where
+            Self: rand::distributions::Distribution<[T::Scalar; 2]>,
+        {
+            #[inline]
+            fn sample<R: ?Sized + rand::Rng>(&self, rng: &mut R) -> $ty<T> {
+                self.sample(rng).into()
+            }
+        }
+
+        #[cfg(feature = "rand")]
+        impl<T: Unit> rand::distributions::Distribution<$ty<T>> for rand_distr::UnitDisc
+        where
+            Self: rand::distributions::Distribution<[T::Scalar; 2]>,
+        {
+            #[inline]
+            fn sample<R: ?Sized + rand::Rng>(&self, rng: &mut R) -> $ty<T> {
+                self.sample(rng).into()
+            }
+        }
+
+        #[cfg(feature = "rand")]
+        impl<T: Unit> $ty<T> {
+            /// Samples uniformly from the edge of the unit circle in two dimensions.
+            ///
+            /// See [`rand_distr::UnitCircle`].
+            #[inline]
+            #[must_use]
+            pub fn sample_unit_circle<R: ?Sized + rand::Rng>(rng: &mut R) -> Self
+            where
+                rand_distr::UnitCircle: rand::distributions::Distribution<Self>,
+            {
+                rng.sample(rand_distr::UnitCircle)
+            }
+
+            /// Samples uniformly from the unit disc in two dimensions.
+            ///
+            /// See [`rand_distr::UnitDisc`].
+            #[doc(alias = "sample_unit_disk")]
+            #[inline]
+            #[must_use]
+            pub fn sample_unit_disc<R: ?Sized + rand::Rng>(rng: &mut R) -> Self
+            where
+                rand_distr::UnitDisc: rand::distributions::Distribution<Self>,
+            {
+                rng.sample(rand_distr::UnitDisc)
+            }
+        }
+    };
+    (@spec $ty:ident [3] { $( $field:ident ),* }) => {
+        #[cfg(feature = "rand")]
+        impl<T: Unit> rand::distributions::Distribution<$ty<T>> for rand_distr::UnitBall
+        where
+            Self: rand::distributions::Distribution<[T::Scalar; 3]>,
+        {
+            #[inline]
+            fn sample<R: ?Sized + rand::Rng>(&self, rng: &mut R) -> $ty<T> {
+                self.sample(rng).into()
+            }
+        }
+
+        #[cfg(feature = "rand")]
+        impl<T: Unit> rand::distributions::Distribution<$ty<T>> for rand_distr::UnitSphere
+        where
+            Self: rand::distributions::Distribution<[T::Scalar; 3]>,
+        {
+            #[inline]
+            fn sample<R: ?Sized + rand::Rng>(&self, rng: &mut R) -> $ty<T> {
+                self.sample(rng).into()
+            }
+        }
+
+        #[cfg(feature = "rand")]
+        impl<T: Unit> $ty<T> {
+            /// Samples uniformly from the unit ball (surface and interior) in three dimensions.
+            ///
+            /// See [`rand_distr::UnitBall`].
+            #[inline]
+            #[must_use]
+            pub fn sample_unit_ball<R: ?Sized + rand::Rng>(rng: &mut R) -> Self
+            where
+                rand_distr::UnitBall: rand::distributions::Distribution<Self>,
+            {
+                rng.sample(rand_distr::UnitBall)
+            }
+
+            /// Samples uniformly from the surface of the unit sphere in three dimensions.
+            ///
+            /// See [`rand_distr::UnitSphere`].
+            #[inline]
+            #[must_use]
+            pub fn sample_unit_sphere<R: ?Sized + rand::Rng>(rng: &mut R) -> Self
+            where
+                rand_distr::UnitSphere: rand::distributions::Distribution<Self>,
+            {
+                rng.sample(rand_distr::UnitSphere)
+            }
+        }
+    };
+    (@spec $ty:ident [$len:literal] { $( $field:ident ),* }) => {};
+}
+
 pub(crate) use forward_comparison;
 pub(crate) use forward_constructors;
 pub(crate) use forward_float_ops;
@@ -776,10 +897,11 @@ pub(crate) use forward_to_raw_impl;
 
 pub(crate) use derive_array_conversion_traits;
 pub(crate) use derive_glam_conversion_traits;
+pub(crate) use derive_index_traits;
 pub(crate) use derive_standard_traits;
 pub(crate) use derive_tuple_conversion_traits;
-pub(crate) use derive_index_traits;
 
 pub(crate) use array_interface;
 pub(crate) use casting_interface;
+pub(crate) use rand_interface;
 pub(crate) use tuple_interface;
