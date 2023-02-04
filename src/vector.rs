@@ -14,6 +14,7 @@ use core::ops::Mul;
 use crate::scalar::SignedScalar;
 use crate::{
     bindings::prelude::*, scalar::FloatScalar, Point2, Point3, Point4, Scalar, Size2, Size3, Unit,
+    Axis2, Axis3, Axis4,
 };
 use crate::{Angle, AsRaw, FromRaw, ToRaw};
 
@@ -22,21 +23,28 @@ use crate::{Angle, AsRaw, FromRaw, ToRaw};
 /// For GLSL-like swizzling, see [`glam::Vec2Swizzles`], [`glam::Vec3Swizzles`],
 /// or [`glam::Vec4Swizzles`].
 pub trait Swizzle<T: Unit> {
+    /// The coordinate axes corresponding to the dimension of the vector.
+    type Axis;
+
     #[doc = "Select two components from this vector and return a 2D vector made from"]
     #[doc = "those components."]
     #[must_use]
-    fn swizzle2<const X: usize, const Y: usize>(&self) -> Vector2<T>;
+    fn swizzle2(&self, x: Self::Axis, y: Self::Axis) -> Vector2<T>;
 
     #[doc = "Select three components from this vector and return a 3D vector made from"]
     #[doc = "those components."]
     #[must_use]
-    fn swizzle3<const X: usize, const Y: usize, const Z: usize>(&self) -> Vector3<T>;
+    fn swizzle3(&self, x: Self::Axis, y: Self::Axis, z: Self::Axis) -> Vector3<T>;
 
     #[doc = "Select four components from this vector and return a 4D vector made from"]
     #[doc = "those components."]
     #[must_use]
-    fn swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
+    fn swizzle4(
         &self,
+        x: Self::Axis,
+        y: Self::Axis,
+        z: Self::Axis,
+        w: Self::Axis,
     ) -> Vector4<T>;
 }
 
@@ -175,34 +183,23 @@ macro_rules! vector_interface {
 }
 
 macro_rules! implement_swizzle {
-    ($base_type_name:ident) => {
+    ($base_type_name:ident, $axis:ident) => {
         impl<T: Unit> Swizzle<T> for $base_type_name<T> {
+            type Axis = $axis;
+
             #[inline]
-            fn swizzle2<const X: usize, const Y: usize>(&self) -> Vector2<T> {
-                [self.const_get::<X>(), self.const_get::<Y>()].into()
+            fn swizzle2(&self, x: $axis, y: $axis) -> Vector2<T> {
+                [self[x], self[y]].into()
             }
 
             #[inline]
-            fn swizzle3<const X: usize, const Y: usize, const Z: usize>(&self) -> Vector3<T> {
-                [
-                    self.const_get::<X>(),
-                    self.const_get::<Y>(),
-                    self.const_get::<Z>(),
-                ]
-                .into()
+            fn swizzle3(&self, x: $axis, y: $axis, z: $axis) -> Vector3<T> {
+                [self[x], self[y], self[z]].into()
             }
 
             #[inline]
-            fn swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
-                &self,
-            ) -> Vector4<T> {
-                [
-                    self.const_get::<X>(),
-                    self.const_get::<Y>(),
-                    self.const_get::<Z>(),
-                    self.const_get::<W>(),
-                ]
-                .into()
+            fn swizzle4(&self, x: $axis, y: $axis, z: $axis, w: $axis) -> Vector4<T> {
+                [self[x], self[y], self[z], self[w]].into()
             }
         }
     };
@@ -322,9 +319,9 @@ crate::derive_glam_conversion_traits!(Vector4 {
     w: T::Scalar
 });
 
-implement_swizzle!(Vector2);
-implement_swizzle!(Vector3);
-implement_swizzle!(Vector4);
+implement_swizzle!(Vector2, Axis2);
+implement_swizzle!(Vector3, Axis3);
+implement_swizzle!(Vector4, Axis4);
 
 impl<T: Unit> Vector2<T> {
     /// All zeroes.
@@ -387,8 +384,8 @@ impl<T: Unit> Vector2<T> {
     /// those components.
     #[inline]
     #[must_use]
-    pub fn swizzle<const X: usize, const Y: usize>(&self) -> Self {
-        self.swizzle2::<X, Y>()
+    pub fn swizzle(&self, x: Axis2, y: Axis2) -> Self {
+        Self::new(self[x], self[y])
     }
 
     vector_interface!(Point2, Size2);
@@ -532,8 +529,8 @@ impl<T: Unit> Vector3<T> {
     /// those components.
     #[inline]
     #[must_use]
-    pub fn swizzle<const X: usize, const Y: usize, const Z: usize>(&self) -> Self {
-        self.swizzle3::<X, Y, Z>()
+    pub fn swizzle(&self, x: Axis3, y: Axis3, z: Axis3) -> Self {
+        Self::new(self[x], self[y], self[z])
     }
 
     vector_interface!(Point3, Size3);
@@ -721,8 +718,8 @@ impl<T: Unit> Vector4<T> {
     /// those components.
     #[inline]
     #[must_use]
-    pub fn swizzle<const X: usize, const Y: usize, const Z: usize, const W: usize>(&self) -> Self {
-        self.swizzle4::<X, Y, Z, W>()
+    pub fn swizzle(&self, x: Axis4, y: Axis4, z: Axis4, w: Axis4) -> Self {
+        Self::new(self[x], self[y], self[z], self[w])
     }
 
     vector_interface!(Point4);
@@ -958,6 +955,10 @@ impl<'a, T: Unit> Sum<&'a Vector4<T>> for Vector4<T> {
         Self::from_raw(iter.map(AsRaw::as_raw).sum())
     }
 }
+
+crate::derive_index_traits!(Vector2, Axis2 { X => x, Y => y });
+crate::derive_index_traits!(Vector3, Axis3 { X => x, Y => y, Z => z });
+crate::derive_index_traits!(Vector4, Axis4 { X => x, Y => y, Z => z, W => w });
 
 #[cfg(test)]
 mod tests {
@@ -1197,9 +1198,9 @@ mod tests {
 
     #[test]
     fn swizzle2() {
-        assert_eq!(Vec2::X.swizzle::<1, 0>(), (0.0, 1.0));
+        assert_eq!(Vec2::X.swizzle(Axis2::Y, Axis2::X), (0.0, 1.0));
         assert_eq!(
-            Vec3::new(1.0, 2.0, 3.0).swizzle2::<1, 0>(),
+            Vec3::new(1.0, 2.0, 3.0).swizzle2(Axis3::Y, Axis3::X),
             Vec2::new(2.0, 1.0)
         );
     }
@@ -1207,12 +1208,12 @@ mod tests {
     #[test]
     fn swizzle3() {
         assert_eq!(
-            Vec3::new(1.0, 2.0, 3.0).swizzle::<2, 1, 0>(),
+            Vec3::new(1.0, 2.0, 3.0).swizzle(Axis3::Z, Axis3::Y, Axis3::X),
             (3.0, 2.0, 1.0)
         );
-        assert_eq!(Vec2::X.swizzle3::<1, 0, 1>(), Vec3::new(0.0, 1.0, 0.0));
+        assert_eq!(Vec2::X.swizzle3(Axis2::Y, Axis2::X, Axis2::Y), Vec3::new(0.0, 1.0, 0.0));
         assert_eq!(
-            Vec4::new(1.0, 2.0, 3.0, 4.0).swizzle3::<3, 2, 1>(),
+            Vec4::new(1.0, 2.0, 3.0, 4.0).swizzle3(Axis4::W, Axis4::Z, Axis4::Y),
             Vec3::new(4.0, 3.0, 2.0)
         );
     }
@@ -1220,16 +1221,16 @@ mod tests {
     #[test]
     fn swizzle4() {
         assert_eq!(
-            Vec4::new(0.0, 1.0, 2.0, 3.0).swizzle::<3, 2, 1, 0>(),
+            Vec4::new(0.0, 1.0, 2.0, 3.0).swizzle(Axis4::W, Axis4::Z, Axis4::Y, Axis4::X),
             (3.0, 2.0, 1.0, 0.0)
         );
 
         assert_eq!(
-            Vec2::X.swizzle4::<1, 0, 1, 0>(),
+            Vec2::X.swizzle4(Axis2::Y, Axis2::X, Axis2::Y, Axis2::X),
             Vec4::new(0.0, 1.0, 0.0, 1.0)
         );
         assert_eq!(
-            Vec3::new(0.0, 1.0, 2.0).swizzle4::<2, 1, 0, 2>(),
+            Vec3::new(0.0, 1.0, 2.0).swizzle4(Axis3::Z, Axis3::Y, Axis3::X, Axis3::Z),
             Vec4::new(2.0, 1.0, 0.0, 2.0)
         );
     }

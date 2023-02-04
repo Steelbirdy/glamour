@@ -740,6 +740,30 @@ macro_rules! derive_glam_conversion_traits {
     };
 }
 
+macro_rules! derive_index_traits {
+    ($ty:ident, $axis:ident { $( $ax:ident => $field:ident ),* }) => {
+        impl<T: Unit> core::ops::Index<$axis> for $ty<T> {
+            type Output = T::Scalar;
+
+            #[inline]
+            fn index(&self, axis: $axis) -> &Self::Output {
+                match axis {
+                    $( $axis::$ax => &self.$field, )*
+                }
+            }
+        }
+
+        impl<T: Unit> core::ops::IndexMut<$axis> for $ty<T> {
+            #[inline]
+            fn index_mut(&mut self, axis: $axis) -> &mut Self::Output {
+                match axis {
+                    $( $axis::$ax => &mut self.$field, )*
+                }
+            }
+        }
+    };
+}
+
 pub(crate) use forward_comparison;
 pub(crate) use forward_constructors;
 pub(crate) use forward_float_ops;
@@ -754,6 +778,7 @@ pub(crate) use derive_array_conversion_traits;
 pub(crate) use derive_glam_conversion_traits;
 pub(crate) use derive_standard_traits;
 pub(crate) use derive_tuple_conversion_traits;
+pub(crate) use derive_index_traits;
 
 pub(crate) use array_interface;
 pub(crate) use casting_interface;
