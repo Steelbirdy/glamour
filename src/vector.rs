@@ -967,7 +967,7 @@ where
     /// dimensions.
     #[inline]
     #[must_use]
-    pub fn random_in_semicircle<R: ?Sized + rand::Rng>(rng: &mut R, normal: Self) -> Self
+    pub fn sample_unit_semicircle<R: ?Sized + rand::Rng>(rng: &mut R, normal: Self) -> Self
     where
         rand_distr::UnitCircle: rand::distributions::Distribution<Self>,
     {
@@ -989,7 +989,7 @@ where
     /// dimensions.
     #[inline]
     #[must_use]
-    pub fn random_in_hemisphere<R: ?Sized + rand::Rng>(rng: &mut R, normal: Self) -> Self
+    pub fn sample_unit_hemisphere<R: ?Sized + rand::Rng>(rng: &mut R, normal: Self) -> Self
     where
         rand_distr::UnitSphere: rand::distributions::Distribution<Self>,
     {
