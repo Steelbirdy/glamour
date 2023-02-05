@@ -958,6 +958,50 @@ crate::rand_interface!(Vector2 [2] { x, y });
 crate::rand_interface!(Vector3 [3] { x, y, z });
 crate::rand_interface!(Vector4 [4] { x, y, z, w });
 
+#[cfg(feature = "rand")]
+impl<T: Unit> Vector2<T>
+where
+    T::Scalar: SignedScalar,
+{
+    /// Samples uniformly from the surface of the unit semicircle centered on `normal` in two
+    /// dimensions.
+    #[inline]
+    #[must_use]
+    pub fn random_in_semicircle<R: ?Sized + rand::Rng>(rng: &mut R, normal: Self) -> Self
+    where
+        rand_distr::UnitCircle: rand::distributions::Distribution<Self>,
+    {
+        let ret = rng.sample(rand_distr::UnitCircle);
+        if ret.dot(normal) > T::Scalar::ZERO {
+            ret
+        } else {
+            -ret
+        }
+    }
+}
+
+#[cfg(feature = "rand")]
+impl<T: Unit> Vector3<T>
+where
+    T::Scalar: SignedScalar,
+{
+    /// Samples uniformly from the surface of the unit hemisphere centered on `normal` in three
+    /// dimensions.
+    #[inline]
+    #[must_use]
+    pub fn random_in_hemisphere<R: ?Sized + rand::Rng>(rng: &mut R, normal: Self) -> Self
+    where
+        rand_distr::UnitSphere: rand::distributions::Distribution<Self>,
+    {
+        let ret = rng.sample(rand_distr::UnitSphere);
+        if ret.dot(normal) > T::Scalar::ZERO {
+            ret
+        } else {
+            -ret
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use approx::assert_abs_diff_eq;
