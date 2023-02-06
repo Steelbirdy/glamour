@@ -2,11 +2,7 @@
 
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 
-use crate::{
-    scalar::FloatScalar,
-    traits::{Contains, Intersection},
-    Point2, Point3, Rect, Size2, Union, Unit, Vector2,
-};
+use crate::{scalar::FloatScalar, traits::{Contains, Intersection}, bindings::Mask, Point2, Point3, Rect, Size2, Union, Unit, Vector2, Vector3, Size3};
 
 /// 2D axis-aligned box represented as "min" and "max" points.
 #[cfg_attr(feature = "serde", derive(::serde::Serialize, ::serde::Deserialize))]
@@ -302,6 +298,132 @@ impl<T: Unit> Box3<T> {
         min: Point3<T>,
         max: Point3<T>
     });
+
+    /// Calculate the minimal bounding box that contains all of `points`.
+    #[must_use]
+    pub fn from_points<I>(points: I) -> Self
+    where
+        I: IntoIterator<Item = Point3<T>>,
+    {
+        let mut points = points.into_iter();
+        let Some(first) = points.next()
+        else { return Box3::ZERO };
+
+        let (mut min, mut max) = (first, first);
+
+        for point in points {
+            if min.x > point.x {
+                min.x = point.x;
+            }
+            if min.y > point.y {
+                min.y = point.y;
+            }
+            if min.z > point.z {
+                min.z = point.z;
+            }
+            if max.x < point.x {
+                max.x = point.x;
+            }
+            if max.y < point.y {
+                max.y = point.y;
+            }
+            if max.z < point.z {
+                max.z = point.z;
+            }
+        }
+
+        Box3 { min, max }
+    }
+
+    /// Corners of the box.
+    #[inline]
+    #[must_use]
+    pub fn corners(&self) -> [Point3<T>; 8] {
+        let &Self { min, max } = self;
+        [
+            min,
+            Point3::new(min.x, min.y, max.z),
+            Point3::new(min.x, max.y, min.z),
+            Point3::new(min.x, max.y, max.z),
+            Point3::new(max.x, min.y, min.z),
+            Point3::new(max.x, min.y, max.z),
+            Point3::new(max.x, max.y, min.z),
+            max,
+        ]
+    }
+
+    /// True if the box is zero or negative (see [`Self::is_negative`]).
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        use crate::Scalar;
+        !(self.max
+            .cmpgt(self.min)
+            .all()
+        && self.min.x.is_finite()
+        && self.min.y.is_finite()
+        && self.min.z.is_finite()
+        && self.max.x.is_finite()
+        && self.max.y.is_finite()
+        && self.max.z.is_finite())
+    }
+
+    /// True if at least one component of `min` is >= the corresponding component of `max`.
+    #[inline]
+    #[must_use]
+    pub fn is_negative(&self) -> bool {
+        use crate::Scalar;
+        !(self.max
+            .cmpge(self.min)
+            .all()
+        && self.min.x.is_finite()
+        && self.min.y.is_finite()
+        && self.min.z.is_finite()
+        && self.max.x.is_finite()
+        && self.max.y.is_finite()
+        && self.max.z.is_finite())
+    }
+
+    /// Calculate the intersection, returning an invalid box when there is not intersection.
+    #[inline]
+    #[must_use]
+    pub fn intersection_unchecked(&self, other: &Self) -> Self {
+        // The intersection is the max() of the min coordinates and the min() of
+        // the max coordinates. If any component of the new `max` is < `min`, then
+        // there is no intersection.
+        let min = Point3::max(self.min, other.min);
+        let max = Point3::min(self.max, other.max);
+        Self { min, max }
+    }
+
+    /// Translate `min` and `max` by a given vector.
+    #[inline]
+    #[must_use]
+    pub fn translate(self, by: Vector3<T>) -> Self {
+        self + by
+    }
+
+    /// Returns the center of the box.
+    #[inline]
+    #[must_use]
+    pub fn center(&self) -> Point3<T> {
+        let v = (self.max - self.min) / (Vector3::ONE + Vector3::ONE);
+        self.min + v
+    }
+
+    /// Returns the size of the box.
+    #[inline]
+    #[must_use]
+    pub fn size(&self) -> Size3<T> {
+        (self.max - self.min).into()
+    }
+
+    /// Returns the volume enclosed by the box.
+    #[inline]
+    #[must_use]
+    pub fn volume(&self) -> T::Scalar {
+        self.size().volume()
+    }
 }
 
 impl<T: Unit> From<Box2<T>> for Rect<T> {
@@ -422,6 +544,90 @@ impl<T: Unit> Union<Box2<T>> for Box2<T> {
         let min = self.min.min(other.min);
         let max = self.max.max(other.max);
         Box2 { min, max }
+    }
+}
+
+impl<T: Unit> AddAssign<Vector3<T>> for Box3<T> {
+    fn add_assign(&mut self, rhs: Vector3<T>) {
+        self.min += rhs;
+        self.max += rhs;
+    }
+}
+
+impl<T: Unit> Add<Vector3<T>> for Box3<T> {
+    type Output = Self;
+
+    fn add(self, rhs: Vector3<T>) -> Self::Output {
+        Box3 { min: self.min + rhs, max: self.max + rhs }
+    }
+}
+
+impl<T: Unit> SubAssign<Vector3<T>> for Box3<T> {
+    fn sub_assign(&mut self, rhs: Vector3<T>) {
+        self.min -= rhs;
+        self.max -= rhs;
+    }
+}
+
+impl<T: Unit> Sub<Vector3<T>> for Box3<T> {
+    type Output = Self;
+
+    fn sub(self, rhs: Vector3<T>) -> Self::Output {
+        Box3 { min: self.min - rhs, max: self.max - rhs }
+    }
+}
+
+impl<T: Unit> Contains<Point3<T>> for Box3<T> {
+    #[inline]
+    fn contains(&self, &point: &Point3<T>) -> bool {
+        self.min.cmple(point).all() && point.cmple(self.max).all()
+    }
+}
+
+impl<T: Unit> Intersection<Point3<T>> for Box3<T> {
+    type Intersection = Point3<T>;
+
+    fn intersects(&self, &point: &Point3<T>) -> bool {
+        self.min.cmple(point).all() && point.cmplt(self.max).all()
+    }
+
+    fn intersection(&self, point: &Point3<T>) -> Option<Self::Intersection> {
+        self.intersects(point).then_some(*point)
+    }
+}
+
+impl<T: Unit> Intersection<Self> for Box3<T> {
+    type Intersection = Self;
+
+    /// Boxes are considered to be intersecting when a corner is entirely inside
+    /// the other box. Note that this is different from the implementation of
+    /// `Contains`, which returns `true` for a point that is exactly on one of
+    /// the `max` coordinates.
+    fn intersects(&self, bx: &Self) -> bool {
+        !self.intersection_unchecked(bx).is_empty()
+    }
+
+    fn intersection(&self, bx: &Self) -> Option<Self::Intersection> {
+        let intersection = self.intersection_unchecked(bx);
+        (!intersection.is_empty()).then_some(intersection)
+    }
+}
+
+impl<T: Unit> Union<Self> for Box3<T> {
+    type Union = Self;
+
+    #[inline]
+    #[must_use]
+    fn union(self, other: Self) -> Self::Union {
+        if self.is_empty() {
+            other
+        } else if other.is_empty() {
+            self
+        } else {
+            let min = Point3::min(self.min, other.min);
+            let max = Point3::max(self.max, other.max);
+            Box3 { min, max }
+        }
     }
 }
 

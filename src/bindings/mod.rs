@@ -17,10 +17,12 @@ use crate::traits::marker::PodValue;
 mod matrix;
 mod quat;
 mod vec;
+mod mask;
 
 pub use matrix::*;
 pub use quat::*;
 pub use vec::*;
+pub use mask::*;
 
 /// Convenience import for binding traits.
 pub mod prelude {

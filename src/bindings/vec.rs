@@ -1,8 +1,6 @@
 #![allow(missing_docs, clippy::return_self_not_must_use)]
 
-use core::ops::{BitAnd, BitOr, BitXor, Neg, Not};
-
-use crate::{FromRaw, Scalar};
+use crate::{Scalar, bindings::Mask};
 
 use super::*;
 
@@ -33,11 +31,7 @@ pub trait Vector:
 
     /// The bitmask type used by comparisons etc. of this vector type
     /// (`glam::BVec3` etc.).
-    type Mask: BitAnd<Output = Self::Mask>
-        + BitOr<Output = Self::Mask>
-        + Not<Output = Self::Mask>
-        + BitXor<Output = Self::Mask>
-        + FromRaw<Raw = Self::Mask>;
+    type Mask: Mask;
 
     fn splat(scalar: Self::Scalar) -> Self;
     fn clamp(self, min: Self, max: Self) -> Self;

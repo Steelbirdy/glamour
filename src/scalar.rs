@@ -1,5 +1,3 @@
-use core::ops::{BitAnd, BitOr, BitXor, Not};
-
 use crate::traits::marker::PodValue;
 use crate::{bindings, AsRaw, FromRaw, ToRaw};
 
@@ -37,23 +35,11 @@ pub trait Scalar:
     type Vec4: bindings::Vector4<Scalar = Self, Mask = Self::BVec4>;
 
     /// The bitmask used for comparison of 2D vectors of this type.
-    type BVec2: BitAnd<Output = Self::BVec2>
-    + BitOr<Output = Self::BVec2>
-    + Not<Output = Self::BVec2>
-    + BitXor<Output = Self::BVec2>
-    + FromRaw<Raw = Self::BVec2>;
+    type BVec2: bindings::Mask;
     /// The bitmask used for comparison of 3D vectors of this type.
-    type BVec3: BitAnd<Output = Self::BVec3>
-    + BitOr<Output = Self::BVec3>
-    + Not<Output = Self::BVec3>
-    + BitXor<Output = Self::BVec3>
-    + FromRaw<Raw = Self::BVec3>;
+    type BVec3: bindings::Mask;
     /// The bitmask used for comparison of 4D vectors of this type.
-    type BVec4: BitAnd<Output = Self::BVec4>
-    + BitOr<Output = Self::BVec4>
-    + Not<Output = Self::BVec4>
-    + BitXor<Output = Self::BVec4>
-    + FromRaw<Raw = Self::BVec4>;
+    type BVec4: bindings::Mask;
 
     /// Zero.
     const ZERO: Self;
