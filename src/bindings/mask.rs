@@ -33,15 +33,7 @@ macro_rules! impl_mask {
 }
 
 impl_mask!(glam::BVec2);
-
 impl_mask!(glam::BVec3);
-
-#[cfg(all(
-    target_feature = "sse2",
-    not(any(feature = "core-simd", feature = "scalar-math")),
-))]
-impl_mask!(glam::BVec3A);
-
 impl_mask!(glam::BVec4);
 
 #[cfg(all(
