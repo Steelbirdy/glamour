@@ -350,6 +350,14 @@ impl<T: Unit> Vector2<T> {
         Self { x, y }
     }
 
+    /// Unit vector in the direction of the given axis.
+    pub const fn unit_vector(axis: Axis2) -> Self {
+        match axis {
+            Axis2::X => Self::X,
+            Axis2::Y => Self::Y,
+        }
+    }
+
     crate::forward_constructors!(2, glam::Vec2);
     crate::forward_comparison!(
         <<T::Scalar as Scalar>::Vec2 as crate::bindings::Vector>::Mask,
@@ -491,6 +499,15 @@ impl<T: Unit> Vector3<T> {
     /// New vector.
     pub const fn new(x: T::Scalar, y: T::Scalar, z: T::Scalar) -> Self {
         Self { x, y, z }
+    }
+
+    /// Unit vector in the direction of the given axis.
+    pub const fn unit_vector(axis: Axis3) -> Self {
+        match axis {
+            Axis3::X => Self::X,
+            Axis3::Y => Self::Y,
+            Axis3::Z => Self::Z,
+        }
     }
 
     crate::forward_constructors!(3, glam::Vec3);
@@ -680,6 +697,16 @@ impl<T: Unit> Vector4<T> {
     /// New vector.
     pub const fn new(x: T::Scalar, y: T::Scalar, z: T::Scalar, w: T::Scalar) -> Self {
         Self { x, y, z, w }
+    }
+
+    /// Unit vector in the direction of the given axis.
+    pub const fn unit_vector(axis: Axis4) -> Self {
+        match axis {
+            Axis4::X => Self::X,
+            Axis4::Y => Self::Y,
+            Axis4::Z => Self::Z,
+            Axis4::W => Self::W,
+        }
     }
 
     crate::forward_constructors!(4, glam::Vec4);
