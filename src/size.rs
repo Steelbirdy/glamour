@@ -307,8 +307,8 @@ where
     crate::forward_float_ops!(<T::Scalar as Scalar>::BVec3, glam::Vec3);
 }
 
-crate::derive_index_traits!(Size2, Axis2 { X => x, Y => y });
-crate::derive_index_traits!(Size3, Axis3 { X => x, Y => y, Z => z });
+crate::derive_index_traits!(Size2, Axis2 { X => width, Y => height });
+crate::derive_index_traits!(Size3, Axis3 { X => width, Y => height, Z => depth });
 
 #[cfg(test)]
 mod tests {
