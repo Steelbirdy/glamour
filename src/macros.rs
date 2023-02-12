@@ -762,6 +762,27 @@ macro_rules! derive_index_traits {
             }
         }
     };
+    (@$elem:ident: $ty:ty, $axis:ident { $( $ax:ident => $field:ident ),* }) => {
+        impl core::ops::Index<$axis> for $ty {
+            type Output = $elem;
+
+            #[inline]
+            fn index(&self, axis: $axis) -> &Self::Output {
+                match axis {
+                    $( $axis::$ax => &self.$field, )*
+                }
+            }
+        }
+
+        impl core::ops::IndexMut<$axis> for $ty {
+            #[inline]
+            fn index_mut(&mut self, axis: $axis) -> &mut Self::Output {
+                match axis {
+                    $( $axis::$ax => &mut self.$field, )*
+                }
+            }
+        }
+    };
 }
 
 macro_rules! rand_interface {

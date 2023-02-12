@@ -106,3 +106,7 @@ impl Axis4 {
         }
     }
 }
+
+crate::derive_index_traits!(@bool: glam::BVec2, Axis2 { X => x, Y => y });
+crate::derive_index_traits!(@bool: glam::BVec3, Axis3 { X => x, Y => y, Z => z });
+crate::derive_index_traits!(@bool: glam::BVec4, Axis4 { X => x, Y => y, Z => z, W => w });
