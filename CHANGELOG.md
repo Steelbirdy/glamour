@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2023-10-27
+### Added
+- Missing `truncate()` method for `Vector4`.
+
+### Fixes
+- Fix lints caught by newer version of clippy.
+
+## [0.8.0] - 2023-07-04
+### Added
+- Support for `i64` and `u64` scalar types based on `glam::I64VecN` and `glam::U64VecN`.
+- Added `INFINITY` and `NEG_INFINITY` associated constants to vector types, and also added the missing `NAN` associated
+  constant to `PointN` and `SizeN`.
+- Implemented `Borrow<glam::VecN>` for all vector types, and `Borrow<glamour::VectorN/PointN/SizeN>` for `glam` types.
+  This enables the interchangeable use of glamour/glam types in hash maps.
+
+### Breaking changes
+- Bumped `encase` dependency to 0.6.0.
+
+## [0.7.1] - 2023-04-11
+### Added
+- Implement `Hash` for integer-based types.
+
+## [0.7.0] - 2023-04-11
+### Breaking Changes
+- Bumped dependency on `glam` to 0.23.0.
+- Bumped dependency on `encase` to 0.5.0.
+
 ## [0.6.0] - 2023-01-25
 ### Added
 - Exposed glam's `core-simd` feature.
@@ -162,7 +189,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release.
 
-[0.5.0]: https://github.com/simonask/glamour/compare/v0.5.0...v0.6.0
+[0.8.1]: https://github.com/simonask/glamour/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/simonask/glamour/compare/v0.7.1...v0.8.0
+[0.7.1]: https://github.com/simonask/glamour/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/simonask/glamour/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/simonask/glamour/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/simonask/glamour/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/simonask/glamour/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/simonask/glamour/compare/v0.3.1...v0.4.0
